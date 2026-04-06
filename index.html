@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Zorvyn Fintech</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --bg:#eef2f7;
+  --card:#fff;
+  --text:#222;
+  --primary:#5b6cff;
+}
+.dark{
+  --bg:#1a1d2b;
+  --card:#252a3a;
+  --text:#fff;
+}
+
+body{
+  margin:0;
+  font-family:Arial;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+}
+
+/* Sidebar */
+.sidebar{
+  width:230px;
+  background:var(--card);
+  height:100vh;
+  padding:20px;
+  transition:.3s;
+}
+.sidebar.hide{margin-left:-230px;}
+
+.menu div{
+  margin:10px 0;
+  padding:8px;
+  cursor:pointer;
+}
+.menu div:hover{
+  background:var(--primary);
+  color:#fff;
+}
+
+.logo{
+  font-weight:bold;
+  color:var(--primary);
+  margin-bottom:10px;
+}
+
+/* Main */
+.main{flex:1;padding:20px;}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* Left */
+.left{flex:1;}
+
+/* Center */
+.center{
+  flex:1;
+  display:flex;
+  justify-content:center;
+}
+.center select{
+  padding:6px 10px;
+}
+
+/* Right */
+.right{
+  flex:1;
+  display:flex;
+  justify-content:flex-end;
+}
+
+/* Toggle */
+.switch{width:50px;height:24px;position:relative;}
+.switch input{display:none;}
+.slider{
+  background:#ccc;
+  width:100%;height:100%;
+  border-radius:20px;
+  position:absolute;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:18px;height:18px;
+  background:#fff;
+  top:3px;left:3px;
+  border-radius:50%;
+  transition:.3s;
+}
+input:checked + .slider{background:var(--primary);}
+input:checked + .slider:before{transform:translateX(26px);}
+
+/* Sections */
+.section{display:none;}
+.active{display:block;}
+
+/* Cards */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;
+}
+.card{
+  background:var(--card);
+  padding:10px;
+  text-align:center;
+  border-radius:8px;
+}
+
+canvas{
+  max-height:220px;
+  margin-top:15px;
+  background:var(--card);
+  padding:10px;
+  border-radius:8px;
+}
+
+/* Table */
+table{width:100%;background:var(--card);margin-top:10px;}
+th{background:var(--primary);color:#fff;}
+th,td{padding:8px;text-align:center;}
+
+button{
+  margin-top:5px;
+  padding:6px;
+  border:none;
+  background:var(--primary);
+  color:#fff;
+}
+
+/* Responsive */
+@media (max-width:600px){
+  .center select{
+    width:120px;
+    font-size:12px;
+  }
+}
+
+/* =========================
+   📱 MOBILE (up to 600px)
+========================= */
+@media (max-width:600px){
+
+  body{
+    flex-direction:column;
+  }
+
+  /* Sidebar becomes top menu */
+  .sidebar{
+    width:100%;
+    height:auto;
+    display:flex;
+    flex-direction:row;
+    overflow-x:auto;
+  }
+
+  .menu{
+    display:flex;
+    gap:10px;
+  }
+
+  .menu div{
+    white-space:nowrap;
+  }
+
+  /* Topbar stack */
+  .topbar{
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .left, .center, .right{
+    width:100%;
+    justify-content:center;
+    display:flex;
+  }
+
+  .center select{
+    width:140px;
+    font-size:12px;
+  }
+
+  /* Cards full width */
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  /* Charts full width */
+  canvas{
+    width:100% !important;
+  }
+
+  /* Table scroll */
+  table{
+    display:block;
+    overflow-x:auto;
+  }
+}
+
+
+/* =========================
+   📲 TABLET (601px - 1024px)
+========================= */
+@media (min-width:601px) and (max-width:1024px){
+
+  /* Sidebar smaller */
+  .sidebar{
+    width:180px;
+  }
+
+  /* Cards 2 per row */
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  /* Center dropdown smaller */
+  .center select{
+    width:130px;
+  }
+
+  /* Charts medium */
+  canvas{
+    max-height:200px;
+  }
+}
+
+
+/* =========================
+   💻 LAPTOP (1025px and above)
+========================= */
+@media (min-width:1025px){
+
+  /* Full layout */
+  .sidebar{
+    width:230px;
+  }
+
+  .cards{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  canvas{
+    max-height:220px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">Zorvyn Fintech</div>
+
+  <div class="menu">
+    <div onclick="show('dashboard')">Dashboard</div>
+    <div onclick="show('insights')">Insights</div>
+    <div onclick="show('transactions')">Transactions</div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+<!-- Topbar -->
+<div class="topbar">
+
+  <!-- LEFT -->
+  <div class="left">
+    <span onclick="toggleMenu()" style="cursor:pointer;">☰</span>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <select id="role" onchange="changeRole()">
+      <option value="viewer">Viewer</option>
+      <option value="admin">Admin</option>
+    </select>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <label class="switch">
+      <input type="checkbox" id="theme">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+</div>
+
+<br>
+
+<!-- Dashboard -->
+<div id="dashboard" class="section active">
+  <div class="cards">
+    <div class="card">Balance<br><span id="balance"></span></div>
+    <div class="card">Income<br><span id="income"></span></div>
+    <div class="card">Expense<br><span id="expense"></span></div>
+  </div>
+
+  <canvas id="lineChart"></canvas>
+  <canvas id="pieChart"></canvas>
+</div>
+
+<!-- Insights -->
+<div id="insights" class="section">
+
+  <div class="cards">
+    <div class="card">Trend Analysis</div>
+    <div class="card">Category Insights</div>
+  </div>
+
+  <canvas id="insightLine"></canvas>
+  <canvas id="categoryLine"></canvas>
+
+</div>
+
+<!-- Transactions -->
+<div id="transactions" class="section">
+<table>
+<thead>
+<tr>
+<th>Date</th><th>Amount</th><th>Category</th><th>Type</th><th id="actionHead">Actions</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+<button id="addBtn" onclick="add()">Add Transaction</button>
+</div>
+
+</div>
+
+<script>
+let data=[
+{date:"2024-04-01",amount:5000,category:"Salary",type:"income"},
+{date:"2024-04-02",amount:300,category:"Food",type:"expense"},
+{date:"2025-04-03",amount:400,category:"Entertainment",type:"expense"},
+{date:"2026-04-03",amount:400,category:"Transportation",type:"expense"}
+];
+
+let isAdmin=false;
+let line,pie,insight,catLine;
+
+function toggleMenu(){
+  sidebar.classList.toggle("hide");
+}
+
+function show(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+theme.onchange=()=>document.body.classList.toggle("dark");
+
+function changeRole(){
+  isAdmin = role.value==="admin";
+  render();
+}
+
+function render(){
+  let inc=0,exp=0,map={};
+  table.innerHTML="";
+
+  data.forEach((d,i)=>{
+    if(d.type==="income") inc+=d.amount;
+    else{
+      exp+=d.amount;
+      map[d.category]=(map[d.category]||0)+d.amount;
+    }
+
+    table.innerHTML+=`
+    <tr>
+      <td>${d.date}</td>
+      <td>${d.amount}</td>
+      <td>${d.category}</td>
+      <td>${d.type}</td>
+      <td>${isAdmin?`
+        <button onclick="edit(${i})">Edit</button>
+        <button onclick="del(${i})">Delete</button>`:"-"}</td>
+    </tr>`;
+  });
+
+  balance.innerText=inc-exp;
+  income.innerText=inc;
+  expense.innerText=exp;
+
+  addBtn.style.display=isAdmin?"block":"none";
+  actionHead.style.display=isAdmin?"":"none";
+
+  draw(map);
+}
+
+function draw(map){
+  if(line) line.destroy();
+  if(pie) pie.destroy();
+  if(insight) insight.destroy();
+  if(catLine) catLine.destroy();
+
+  line=new Chart(lineChart,{
+    type:"line",
+    data:{
+      labels:data.map(d=>d.date),
+      datasets:[{data:data.map(d=>d.amount), tension:0.4}]
+    }
+  });
+
+  pie=new Chart(pieChart,{
+    type:"doughnut",
+    data:{
+      labels:Object.keys(map),
+      datasets:[{data:Object.values(map)}]
+    }
+  });
+
+  insight=new Chart(insightLine,{
+    type:"line",
+    data:{
+      labels:data.map(d=>d.date),
+      datasets:[{
+        label:"Overall Trend",
+        data:data.map(d=>d.amount),
+        tension:0.4
+      }]
+    }
+  });
+
+  catLine=new Chart(categoryLine,{
+    type:"line",
+    data:{
+      labels:Object.keys(map),
+      datasets:[{
+        label:"Category Trend",
+        data:Object.values(map),
+        tension:0.4
+      }]
+    }
+  });
+}
+
+function add(){
+  if(!isAdmin) return;
+  data.push({
+    date:new Date().toISOString().split("T")[0],
+    amount:Math.floor(Math.random()*500),
+    category:"Food",
+    type:"expense"
+  });
+  render();
+}
+
+function del(i){
+  if(!isAdmin) return;
+  data.splice(i,1);
+  render();
+}
+
+function edit(i){
+  if(!isAdmin) return;
+  let val=prompt("Enter new amount");
+  if(val) data[i].amount=+val;
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
