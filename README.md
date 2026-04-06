@@ -22,4 +22,3 @@ Zorvyn Fintech Dashboard is a responsive web-based financial dashboard designed 
 - JavaScript  
 - Chart.js  
 
-## Project Structure
